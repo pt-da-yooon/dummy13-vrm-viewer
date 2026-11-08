@@ -1,0 +1,16 @@
+.controls .ghost, .label-side .ghost { background: var(--card); color: var(--fg); border: 1px solid var(--line); }
+.controls .sep { flex: 1; }
+.muted { color: var(--muted); font-size: .85rem; }
+.label-main { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 16px; max-width: 1400px; }
+@media (max-width: 900px) { .label-main { grid-template-columns: 1fr; } }
+.label-view { position: relative; background: #111; border-radius: 8px; overflow: hidden; height: min(75vh, 760px); }
+.label-view canvas { width: 100%; height: 100%; cursor: crosshair; }
+.label-view video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; background: #000; }
+.label-side { display: flex; flex-direction: column; gap: 8px; }
+.label-side .nav { display: flex; gap: 8px; align-items: center; justify-content: space-between; }
+.label-side button { font: inherit; padding: 6px 10px; border-radius: 6px; border: none; background: var(--accent); color: #fff; cursor: pointer; }
+#kps td { cursor: pointer; }
+#kps tr.sel td { background: rgba(232, 89, 12, .15); font-weight: 600; }
+#kps .sw { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
+.help { margin: 4px 0 0; padding-left: 18px; color: var(--muted); font-size: .8rem; }
+.help li { margin: 2px 0; }

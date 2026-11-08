@@ -1,0 +1,43 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# 学習データ・3Dデータ・学習結果
+data/
+models/
+runs/
+*.pt
+*.onnx
+*.stl
+*.step
+*.stp
+*.iges
+*.igs
+*.f3z
+*.f3d
+*.obj
+*.glb
+*.gltf
+*.fbx
+*.blend
+*.blend1
+
+# OS / エディタ
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Dummy 13 の STL・組み立てガイドは同梱しない（各自 Printables からダウンロードして assets/dummy13/ に置く）
+assets/dummy13/*.pdf
+
+# ブラウザ版の学習済みモデルは同梱する（上の models/・*.onnx の例外）
+!web/models/
+!web/models/*.onnx
+
+# アバター（ライセンスに従い各自で用意する）
+*.vrm
+# 作者が自作して配布しているアバターは同梱する
+!web/avatars/*.vrm

@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dummy13 VRM Viewer</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <meta name="description" content="Webカメラに映した Dummy 13 のポーズで、VRM アバターが動く。ブラウザで開くだけ・インストール不要。">
+  <!-- SNS などにリンクを貼ったときのカード（OGP・X） -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Dummy13 VRM Viewer">
+  <meta property="og:title" content="Dummy13 VRM Viewer">
+  <meta property="og:description" content="Webカメラに映した Dummy 13 のポーズで、VRM アバターが動く。ブラウザで開くだけ・インストール不要。">
+  <meta property="og:url" content="https://pt-da-yooon.com/dummy13-vrm-viewer/">
+  <meta property="og:image" content="https://pt-da-yooon.com/dummy13-vrm-viewer/ogp.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Dummy 13 のポーズに合わせて VRM アバターが動く">
+  <meta property="og:locale" content="ja_JP">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Dummy13 VRM Viewer">
+  <meta name="twitter:description" content="Webカメラに映した Dummy 13 のポーズで、VRM アバターが動く。ブラウザで開くだけ・インストール不要。">
+  <meta name="twitter:image" content="https://pt-da-yooon.com/dummy13-vrm-viewer/ogp.png">
+  <meta name="twitter:image:alt" content="Dummy 13 のポーズに合わせて VRM アバターが動く">
+  <link rel="stylesheet" href="style.css">
+  <script src="i18n.js"></script>
+  <!-- ONNX Runtime Web（WebGPU が使えれば GPU、無ければ WebAssembly で CPU） -->
+  <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.30.0/dist/ort.all.min.js"></script>
+  <!-- 3D アバター表示（three.js + three-vrm） -->
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/",
+        "@pixiv/three-vrm": "https://cdn.jsdelivr.net/npm/@pixiv/three-vrm@3.5.5/lib/three-vrm.module.min.js"
+      }
+    }
+  </script>
+</head>
+<body>
+  <header class="top">
+    <div class="brand">
+      <img class="logo" src="favicon.svg" alt="" width="56" height="56">
+      <div>
+        <h1><span class="kicker">Dummy13</span> <span class="main">VRM Viewer</span></h1>
+        <p class="sub" data-i18n="sub">Webカメラに映した Dummy 13 の姿勢を推定します</p>
+      </div>
+    </div>
+    <div class="lang" role="group" aria-label="Language">
+      <button type="button" data-lang="ja" aria-pressed="true">JP</button><button type="button" data-lang="en" aria-pressed="false">EN</button>
+    </div>
+  </header>
+
+  <section class="controls">
+    <div class="group">
+      <label class="field"><span data-i18n="camera">カメラ</span>
+        <select id="camera"><option value="" data-i18n="cameraLoading">（読み込み中）</option></select>
+      </label>
+      <button id="start" class="primary" data-i18n="start">カメラ開始</button>
+      <label class="btn file"><span data-i18n="tryFile">画像・動画で試す</span><input id="file" type="file" accept="image/*,video/*"></label>
+      <label class="btn file" id="modelPick" hidden><span data-i18n="pickModel">モデル（.onnx）を選ぶ</span><input id="modelFile" type="file" accept=".onnx"></label>
+    </div>
+  </section>
+
+  <main>
+    <section class="panel">
+      <div class="panel-head"><span class="tag" data-i18n="camera">カメラ</span><div id="status" class="status"></div></div>
+      <div class="view camera-view">
+        <!-- カメラ画像は枠（アバターと同じ 4:3）の中に縦横比を保って収め、重ね描きのキャンバスも同じ大きさにする -->
+        <div class="stage">
+          <canvas id="canvas" width="640" height="480"></canvas>
+          <canvas id="overlay3d" class="overlay3d" hidden></canvas>
+        </div>
+        <div id="overlay" class="overlay" data-i18n="loadingModel">モデルを読み込んでいます…</div>
+      </div>
+      <p class="legend-pts" data-i18n-html="pointsLegend">点：<b class="c-l">左</b> / <b class="c-r">右</b> / <b class="c-c">胴</b>（Dummy13 から見た左右）</p>
+      <div class="panel-bar">
+        <label class="field range"><span data-i18n="threshold">しきい値</span> <input id="conf" type="range" min="0.05" max="0.9" step="0.05" value="0.4"> <span id="confVal">0.40</span></label>
+        <label class="switch"><input id="smooth" type="checkbox" checked><i></i><span data-i18n="smooth">平滑化</span></label>
+        <label class="switch"><input id="mirror" type="checkbox"><i></i><span data-i18n="mirror">左右反転</span></label>
+        <label class="switch"><input id="bones" type="checkbox" checked><i></i><span data-i18n="bones">骨格を表示</span></label>
+      </div>
+    </section>
+
+    <section class="panel avatar-panel">
+      <div class="panel-head"><span class="tag" data-i18n="avatar">アバター</span><span id="avatarName" class="hint" data-i18n="mannequin">マネキン</span></div>
+      <div class="view avatar-view">
+        <canvas id="avatar"></canvas>
+      </div>
+      <div class="panel-bar">
+        <label class="btn file primary"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 11V2.5M4.5 6 8 2.5 11.5 6M2.5 10.5v3h11v-3"/></svg><span data-i18n="loadVrm">VRM を読み込む</span><input id="vrmFile" type="file" accept=".vrm"></label>
+        <button id="resetView" type="button" class="btn" data-i18n="resetView">視点を戻す</button>
+        <label class="switch"><input id="useDepth" type="checkbox" checked><i></i><span data-i18n="useDepth">奥行きを推定</span></label>
+        <label class="switch"><input id="overlayMode" type="checkbox"><i></i><span data-i18n="overlayMode">カメラ画像に重ねる</span></label>
+        <label class="switch"><input id="lightBg" type="checkbox"><i></i><span data-i18n="lightBg">背景を明るく</span></label>
+      </div>
+    </section>
+
+    <aside class="panel">
+      <div class="panel-head"><span class="tag" data-i18n="angles">関節の角度</span></div>
+      <table id="angles"><tbody></tbody></table>
+      <p class="legend"><span class="dot good"></span><span data-i18n="confHigh">信頼度が高い</span> <span class="dot low"></span><span data-i18n="confLow">低い</span></p>
+    </aside>
+  </main>
+
+  <footer>
+    <p class="privacy" data-i18n="privacy">処理はお使いの PC・スマホなどのブラウザ内で行います。カメラの映像や読み込んだ VRM は外部に送信せず、学習もしません。オフラインでも動きます。</p>
+    <span data-i18n-html="credits">Dummy 13 の非公式のファンツールです · 説明：<a href="https://protopedia.net/prototype/10032" target="_blank" rel="noopener">ProtoPedia</a> / <a href="https://www.youtube.com/watch?v=VyDbEDj0Njs" target="_blank" rel="noopener">YouTube</a> · <a href="https://github.com/pt-da-yooon/dummy13-vrm-viewer" target="_blank" rel="noopener">ソースコード</a><br>クレジット：Dummy 13 by <a href="https://www.printables.com/model/981111-dummy-13-version-10" target="_blank" rel="noopener">soozafone</a>（CC BY 4.0） · 姿勢推定：Ultralytics YOLO（AGPL-3.0）</span>
+  </footer>
+
+  <video id="video" playsinline muted hidden></video>
+  <script src="app.js"></script>
+  <script type="module" src="avatar.js"></script>
+  <!-- 一度開いたら、通信できなくても動くようにする（sw.js。https か localhost のときだけ使える） -->
+  <script>if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});</script>
+</body>
+</html>

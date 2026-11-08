@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+  <!-- アイコン：立方体（1 面だけ差し色）。ヘッダーのロゴにも同じファイルを使う -->
+  <rect width="48" height="48" rx="6" fill="#11151c"/>
+  <path d="M24 6L40 15L24 24L8 15Z" fill="#e9edf3"/>
+  <path d="M8 15L24 24V42L8 33Z" fill="#9aa3b2"/>
+  <path d="M40 15L24 24V42L40 33Z" fill="#b4d64a"/>
+</svg>

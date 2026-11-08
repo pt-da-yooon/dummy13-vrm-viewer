@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dummy13 VRM Viewer（撮影用）</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+  <script src="i18n.js"></script>
+  <!-- 3D アバター表示（three.js + three-vrm）。index.html と同じ版 -->
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/",
+        "@pixiv/three-vrm": "https://cdn.jsdelivr.net/npm/@pixiv/three-vrm@3.5.5/lib/three-vrm.module.min.js"
+      }
+    }
+  </script>
+  <style>
+    /* 撮影用：アバターの 3D 表示だけを画面いっぱいに出す。ボタンは左上に小さく、H キーで隠せる */
+    html, body { height: 100%; overflow: hidden; }
+    body { background: #12161e; }
+    #avatar { position: fixed; inset: 0; width: 100vw; height: 100vh; aspect-ratio: auto; cursor: grab; }
+    #avatar:active { cursor: grabbing; }
+    .cap-bar { position: fixed; top: calc(12px + env(safe-area-inset-top, 0px)); left: calc(12px + env(safe-area-inset-left, 0px));
+      display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: .85rem; z-index: 2; }
+    .cap-bar .hint { color: var(--muted); }
+    /* 背景を明るくしても読めるように、スイッチもボタンと同じ地の色にする */
+    .cap-bar .switch { padding: 6px 12px; border: 1px solid var(--line); border-radius: 3px; background: var(--card2); }
+    .cap-bar[hidden] { display: none; }
+    .cap-help { position: fixed; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); left: calc(12px + env(safe-area-inset-left, 0px));
+      color: var(--muted); font-size: .78rem; z-index: 2; }
+    .cap-help[hidden] { display: none; }
+    /* avatar.js が参照するが、撮影では使わない部品 */
+    .unused { display: none; }
+  </style>
+</head>
+<body>
+  <canvas id="avatar"></canvas>
+
+  <div id="bar" class="cap-bar">
+    <label class="btn file primary"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 11V2.5M4.5 6 8 2.5 11.5 6M2.5 10.5v3h11v-3"/></svg><span data-i18n="loadVrm">VRM を読み込む</span><input id="vrmFile" type="file" accept=".vrm"></label>
+    <button id="resetView" type="button" class="btn" data-i18n="resetView">視点を戻す</button>
+    <label class="switch"><input id="lightBg" type="checkbox"><i></i><span data-i18n="lightBg">背景を明るく</span></label>
+    <button id="hideUi" type="button" class="btn" data-i18n="hideUi">ボタンを隠す（H）</button>
+    <span id="avatarName" class="hint" data-i18n="mannequin">マネキン</span>
+  </div>
+  <p id="help" class="cap-help" data-i18n="captureHelp">ドラッグで回す ・ ホイールで寄る／離れる ・ 右ドラッグで平行移動 ・ H でボタンの表示／非表示 ・ F11 で全画面</p>
+
+  <div class="unused" aria-hidden="true">
+    <canvas id="canvas" width="2" height="2"></canvas>
+    <canvas id="overlay3d"></canvas>
+    <input id="overlayMode" type="checkbox">
+    <input id="mirror" type="checkbox">
+    <input id="useDepth" type="checkbox" checked>
+  </div>
+
+  <script>
+    // H キー（またはボタン）で、操作ボタンと説明を隠す／出す
+    const toggleUi = () => { for (const id of ["bar", "help"]) document.getElementById(id).hidden ^= true; };
+    document.getElementById("hideUi").addEventListener("click", toggleUi);
+    addEventListener("keydown", (e) => { if ((e.key === "h" || e.key === "H") && !e.ctrlKey && !e.metaKey && !e.altKey) toggleUi(); });
+  </script>
+  <script type="module" src="avatar.js"></script>
+  <!-- 一度開いたら、通信できなくても動くようにする（sw.js。https か localhost のときだけ使える） -->
+  <script>if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});</script>
+</body>
+</html>

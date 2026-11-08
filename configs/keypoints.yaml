@@ -1,0 +1,55 @@
+# Dummy13 用キーポイント定義（案）
+# 順番はモデルの出力順になるので、確定後は変更しないこと。
+
+keypoints:
+  - head          # 0 頭の中心
+  - neck          # 1 首の付け根
+  - chest         # 2 胸
+  - hips          # 3 腰（骨盤中心）
+  - l_shoulder    # 4
+  - l_elbow       # 5
+  - l_wrist       # 6
+  - r_shoulder    # 7
+  - r_elbow       # 8
+  - r_wrist       # 9
+  - l_hip         # 10
+  - l_knee        # 11
+  - l_ankle       # 12
+  - r_hip         # 13
+  - r_knee        # 14
+  - r_ankle       # 15
+
+# 骨格の接続（描画・角度計算用）
+skeleton:
+  - [head, neck]
+  - [neck, chest]
+  - [chest, hips]
+  - [neck, l_shoulder]
+  - [l_shoulder, l_elbow]
+  - [l_elbow, l_wrist]
+  - [neck, r_shoulder]
+  - [r_shoulder, r_elbow]
+  - [r_elbow, r_wrist]
+  - [hips, l_hip]
+  - [l_hip, l_knee]
+  - [l_knee, l_ankle]
+  - [hips, r_hip]
+  - [r_hip, r_knee]
+  - [r_knee, r_ankle]
+
+# 左右反転の対応（データ拡張の水平反転で使う）
+flip_pairs:
+  - [l_shoulder, r_shoulder]
+  - [l_elbow, r_elbow]
+  - [l_wrist, r_wrist]
+  - [l_hip, r_hip]
+  - [l_knee, r_knee]
+  - [l_ankle, r_ankle]
+
+# 骨の長さ（mm）。実物の Dummy13 を測って埋める。3D化で使用。
+bone_length_mm:
+  upper_arm: null
+  forearm: null
+  thigh: null
+  shin: null
+  spine: null

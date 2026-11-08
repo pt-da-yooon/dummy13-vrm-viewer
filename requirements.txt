@@ -1,0 +1,10 @@
+python-osc>=1.8
+opencv-python>=4.9
+numpy>=1.26
+pyyaml>=6.0
+ultralytics>=8.3
+trimesh>=4.0
+scipy>=1.11
+# Blender を Python モジュールとして使う場合（Python 3.11 限定）は別途:
+#   pip install bpy "numpy<2" "opencv-python<4.12"
+# Blender 本体（blender.exe）で synth/build_rig.py・synth/generate.py を動かすなら bpy は不要。
